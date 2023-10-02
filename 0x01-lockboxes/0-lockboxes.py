@@ -1,24 +1,19 @@
+#!/usr/bin/python3
+'''A module for working with lockboxes.
+'''
+
 def canUnlockAll(boxes):
     if not boxes:
         return False
-
-    # Initialize a set to keep track of visited boxes.
     visited = set()
-    visited.add(0)  # Start with the first box, which is unlocked.
-
-    # Initialize a stack to perform depth-first search.
+    visited.add(0)
     stack = [0]
-
     while stack:
         current_box = stack.pop()
-
-        # Check if the current box contains keys.
         for key in boxes[current_box]:
             if key not in visited:
                 visited.add(key)
                 stack.append(key)
-
-    # If all boxes are visited, return True; otherwise, return False.
     return len(visited) == len(boxes)
 
 # Test cases
