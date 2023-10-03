@@ -2,26 +2,20 @@
 '''A module for working with lockboxes.
 '''
 
+
 def canUnlockAll(boxes):
-    if not boxes:
-        return False
-    visited = set()
-    visited.add(0)
-    stack = [0]
-    while stack:
-        current_box = stack.pop()
-        for key in boxes[current_box]:
-            if key not in visited:
-                visited.add(key)
-                stack.append(key)
-    return len(visited) == len(boxes)
-
-# Test cases
-boxes1 = [[1], [2], [3], [4], []]
-print(canUnlockAll(boxes1))  # Should print True
-
-boxes2 = [[1, 4, 6], [2], [0, 4, 1], [5, 6, 2], [3], [4, 1], [6]]
-print(canUnlockAll(boxes2))  # Should print True
-
-boxes3 = [[1, 4], [2], [0, 4, 1], [3], [], [4, 1], [5, 6]]
-print(canUnlockAll(boxes3))  # Should print False
+    '''Checks if all the boxes in a list of boxes containing the keys
+    (indices) to other boxes can be unlocked given that the first
+    box is unlocked.
+    '''
+    n = len(boxes)
+    seen_boxes = set([0])
+    unseen_boxes = set(boxes[0]).difference(set([0]))
+    while len(unseen_boxes) > 0:
+        boxIdx = unseen_boxes.pop()
+        if not boxIdx or boxIdx >= n or boxIdx < 0:
+            continue
+        if boxIdx not in seen_boxes:
+            unseen_boxes = unseen_boxes.union(boxes[boxIdx])
+            seen_boxes.add(boxIdx)
+    return n == len(seen_boxes)
