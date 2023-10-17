@@ -2,49 +2,53 @@
 
 import sys
 
-# Initialize variables to store metrics
-total_size = 0
-status_code_counts = {}
+
+def print_msg(dict_sc, total_file_size):
+    """
+    Method to print
+    Args:
+        dict_sc: dict of status codes
+        total_file_size: total of the file
+    Returns:
+        Nothing
+    """
+
+    print("File size: {}".format(total_file_size))
+    for key, val in sorted(dict_sc.items()):
+        if val != 0:
+            print("{}: {}".format(key, val))
+
+
+total_file_size = 0
+code = 0
+counter = 0
+dict_sc = {"200": 0,
+           "301": 0,
+           "400": 0,
+           "401": 0,
+           "403": 0,
+           "404": 0,
+           "405": 0,
+           "500": 0}
 
 try:
-    line_count = 0
     for line in sys.stdin:
-        # Split the input line into its components
-        parts = line.split()
-        if len(parts) == 9:
-            ip, _, _, _, status_code, file_size = parts[0], parts[8], parts[10], parts[11], parts[13], parts[14]
-            if status_code.isdigit():
-                # Update the total file size
-                total_size += int(file_size)
+        parsed_line = line.split()  # ✄ trimming
+        parsed_line = parsed_line[::-1]  # inverting
 
-                # Update status code counts
-                status_code = int(status_code)
-                if status_code in [200, 301, 400, 401, 403, 404, 405, 500]:
-                    if status_code in status_code_counts:
-                        status_code_counts[status_code] += 1
-                    else:
-                        status_code_counts[status_code] = 1
+        if len(parsed_line) > 2:
+            counter += 1
 
-                # Increment line count
-                line_count += 1
+            if counter <= 10:
+                total_file_size += int(parsed_line[0])  # file size
+                code = parsed_line[1]  # status code
 
-                # Check if 10 lines have been processed
-                if line_count == 10:
-                    # Print the metrics
-                    print(f"File size: {total_size}")
-                    for code in sorted(status_code_counts.keys()):
-                        print(f"{code}: {status_code_counts[code]}")
-                    print()
+                if (code in dict_sc.keys()):
+                    dict_sc[code] += 1
 
-                    # Reset the counters
-                    total_size = 0
-                    status_code_counts = {}
-                    line_count = 0
-except KeyboardInterrupt:
-    # Handle keyboard interruption (CTRL + C)
-    pass
+            if (counter == 10):
+                print_msg(dict_sc, total_file_size)
+                counter = 0
 
-# Print the final metrics
-print(f"File size: {total_size}")
-for code in sorted(status_code_counts.keys()):
-    print(f"{code}: {status_code_counts[code]}")
+finally:
+    print_msg(dict_sc, total_file_size)
