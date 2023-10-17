@@ -1,68 +1,50 @@
 #!/usr/bin/python3
-"""Write a script that reads stdin line by line and computes metrics:
-
-Input format: <IP Address> - [<date>] "GET /projects/260 HTTP/1.1"
-<status code> <file size> (if the format is not this one, the line
-must be skipped)
-After every 10 lines and/or a keyboard interruption (CTRL + C),
-print these statistics from the beginning:
-Total file size: File size: <total size>
-where <total size> is the sum of all previous <file size>
-(see input format above)
-Number of lines by status code:
-possible status code: 200, 301, 400, 401, 403, 404, 405 and 500
-if a status code doesn’t appear or is not an integer,
-don’t print anything for this status code
-format: <status code>: <number>
-status codes should be printed in ascending order
-
-line list = [<IP Address>, -, [<date>], "GET /projects/260 HTTP/1.1",
-<status code>, <file size>]
-"""
-
 
 import sys
 
-# store the count of all status codes in a dictionary
-status_codes_dict = {'200': 0, '301': 0, '400': 0, '401': 0, '403': 0,
-                     '404': 0, '405': 0, '500': 0}
-
+# Initialize variables to store metrics
 total_size = 0
-count = 0  # keep count of the number lines counted
+status_code_counts = {}
 
 try:
+    line_count = 0
     for line in sys.stdin:
-        line_list = line.split(" ")
+        # Split the input line into its components
+        parts = line.split()
+        if len(parts) == 9:
+            ip, _, _, _, status_code, file_size = parts[0], parts[8], parts[10], parts[11], parts[13], parts[14]
+            if status_code.isdigit():
+                # Update the total file size
+                total_size += int(file_size)
 
-        if len(line_list) > 4:
-            status_code = line_list[-2]
-            file_size = int(line_list[-1])
+                # Update status code counts
+                status_code = int(status_code)
+                if status_code in [200, 301, 400, 401, 403, 404, 405, 500]:
+                    if status_code in status_code_counts:
+                        status_code_counts[status_code] += 1
+                    else:
+                        status_code_counts[status_code] = 1
 
-            # check if the status code receive exists in the dictionary and
-            # increment its count
-            if status_code in status_codes_dict.keys():
-                status_codes_dict[status_code] += 1
+                # Increment line count
+                line_count += 1
 
-            # update total size
-            total_size += file_size
+                # Check if 10 lines have been processed
+                if line_count == 10:
+                    # Print the metrics
+                    print(f"File size: {total_size}")
+                    for code in sorted(status_code_counts.keys()):
+                        print(f"{code}: {status_code_counts[code]}")
+                    print()
 
-            # update count of lines
-            count += 1
-
-        if count == 10:
-            count = 0  # reset count
-            print('File size: {}'.format(total_size))
-
-            # print out status code counts
-            for key, value in sorted(status_codes_dict.items()):
-                if value != 0:
-                    print('{}: {}'.format(key, value))
-
-except Exception as err:
+                    # Reset the counters
+                    total_size = 0
+                    status_code_counts = {}
+                    line_count = 0
+except KeyboardInterrupt:
+    # Handle keyboard interruption (CTRL + C)
     pass
 
-finally:
-    print('File size: {}'.format(total_size))
-    for key, value in sorted(status_codes_dict.items()):
-        if value != 0:
-            print('{}: {}'.format(key, value))
+# Print the final metrics
+print(f"File size: {total_size}")
+for code in sorted(status_code_counts.keys()):
+    print(f"{code}: {status_code_counts[code]}")
